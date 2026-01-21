@@ -1,0 +1,64 @@
+{
+    "name": "SWF.NOTION.ARTIFACT.REGISTER",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "resource": "databasePage",
+                "operation": "create",
+                "databaseId": "={{$env.NOTION_ARTIFACTS_DB_ID}}",
+                "propertiesUi": {
+                    "propertyValues": [
+                        {
+                            "key": "Name",
+                            "title": "={{$json.artifact_name}}"
+                        },
+                        {
+                            "key": "Project",
+                            "relation": "={{[$json.page_id]}}"
+                        },
+                        {
+                            "key": "GCS Link",
+                            "urlValue": "={{$json.gcs_link}}"
+                        },
+                        {
+                            "key": "Type",
+                            "selectValue": "={{$json.artifact_type}}"
+                        }
+                    ]
+                }
+            },
+            "name": "Create Artifact Entry",
+            "type": "n8n-nodes-base.notion",
+            "typeVersion": 2,
+            "position": [
+                450,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Artifact Entry",
+                        "type": "main"
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

@@ -1,0 +1,17 @@
+name: deploy-prod
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy prod stack
+        run: |
+          # This assumes the runner has docker access or this is a simulation
+          docker compose -f docker/prod/docker-compose.yml pull
+          docker compose -f docker/prod/docker-compose.yml up -d

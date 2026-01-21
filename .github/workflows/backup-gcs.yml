@@ -1,0 +1,37 @@
+name: Backup to GCS
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2am
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Run Postgres Backup
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: ./scripts/backup-postgres.sh
+
+      - name: Upload to GCS
+        run: |
+          gsutil cp -r backups/postgres/*.tar.gz gs://${{ secrets.GCS_BUCKET_NAME }}/postgres/
+          echo "Backup uploaded to GCS"

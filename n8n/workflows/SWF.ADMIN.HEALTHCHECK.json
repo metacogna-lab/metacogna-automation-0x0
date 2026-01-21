@@ -1,0 +1,104 @@
+{
+    "name": "SWF.ADMIN.HEALTHCHECK",
+    "nodes": [
+        {
+            "id": "start",
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "position": [
+                100,
+                300
+            ],
+            "parameters": {}
+        },
+        {
+            "id": "check",
+            "name": "Run Health Checks",
+            "type": "n8n-nodes-base.function",
+            "position": [
+                400,
+                300
+            ],
+            "parameters": {
+                "jsCode": "const components = {\n  n8n: !!$env.N8N_EDITOR_BASE_URL,\n  redis: !!$env.QUEUE_BULL_REDIS_HOST,\n  postgres: !!$env.DB_POSTGRESDB_HOST,\n  langfuse: !!$env.LANGFUSE_HOST\n};\n\nconst failed = Object.entries(components)\n  .filter(([_, ok]) => !ok)\n  .map(([name]) => name);\n\nlet status = 'OK';\nlet severity = 'INFO';\n\nif (failed.length > 0) {\n  status = 'DEGRADED';\n  severity = failed.length > 1 ? 'CRITICAL' : 'ERROR';\n}\n\nreturn [{\n  trace_id: 'health-' + Math.random().toString(36).substring(7),\n  status,\n  severity,\n  failed_components: failed,\n  context: {\n    workflow: 'SWF.ADMIN.HEALTHCHECK',\n    node: 'Run Health Checks',\n    environment: $env.NODE_ENV || 'unknown'\n  }\n}];"
+            }
+        },
+        {
+            "id": "if",
+            "name": "If Degraded",
+            "type": "n8n-nodes-base.if",
+            "position": [
+                700,
+                300
+            ],
+            "parameters": {
+                "conditions": {
+                    "string": [
+                        {
+                            "value1": "={{$json.status}}",
+                            "operation": "notEqual",
+                            "value2": "OK"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": "alert",
+            "name": "Slack Alert",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "position": [
+                1000,
+                300
+            ],
+            "parameters": {
+                "workflowId": "SWF.COMMS.SLACK.SEND",
+                "mode": "each",
+                "workflowInputs": {
+                    "mappingMode": "defineBelow",
+                    "parameterizedInputs": {
+                        "severity": "={{$json.severity}}",
+                        "title": "Platform health degraded",
+                        "message": "Failed components: {{$json.failed_components.join(', ')}}",
+                        "trace_id": "={{$json.trace_id}}",
+                        "context": "={{$json.context}}",
+                        "channel": "#platform-health"
+                    }
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Run Health Checks",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Run Health Checks": {
+            "main": [
+                [
+                    {
+                        "node": "If Degraded",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "If Degraded": {
+            "main": [
+                [
+                    {
+                        "node": "Slack Alert",
+                        "type": "main"
+                    }
+                ],
+                []
+            ]
+        }
+    }
+}

@@ -1,0 +1,140 @@
+{
+    "name": "SWF.LINEAR.PROJECT.ENSURE",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.linear.app/graphql",
+                "authentication": "headerAuth",
+                "headerAuth": {
+                    "name": "Authorization",
+                    "value": "={{$env.LINEAR_API_KEY}}"
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ { \"query\": `query { projects(filter: { name: { eq: \"${$json.project_name}\" } }) { nodes { id name } } }` } }}"
+            },
+            "name": "Find Project",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "boolean": [
+                        {
+                            "value1": "={{ $json.data.projects.nodes.length > 0 }}",
+                            "operation": "equal",
+                            "value2": true
+                        }
+                    ]
+                }
+            },
+            "name": "Exists?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.linear.app/graphql",
+                "authentication": "headerAuth",
+                "headerAuth": {
+                    "name": "Authorization",
+                    "value": "={{$env.LINEAR_API_KEY}}"
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ { \"query\": `mutation { projectCreate(input: { name: \"${$node[\"Start\"].json.project_name}\", teamIds: [\"${$env.LINEAR_TEAM_ID}\"] }) { project { id name } } }` } }}"
+            },
+            "name": "Create Project",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                850,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const project = $json.data?.projectCreate?.project || $json.data?.projects?.nodes[0];\nreturn [{\n  linear_project_id: project.id,\n  linear_project_name: project.name\n}];"
+            },
+            "name": "Format Output",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Find Project",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Find Project": {
+            "main": [
+                [
+                    {
+                        "node": "Exists?",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Exists?": {
+            "main": [
+                [
+                    {
+                        "node": "Format Output",
+                        "type": "main"
+                    }
+                ],
+                [
+                    {
+                        "node": "Create Project",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Create Project": {
+            "main": [
+                [
+                    {
+                        "node": "Format Output",
+                        "type": "main"
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

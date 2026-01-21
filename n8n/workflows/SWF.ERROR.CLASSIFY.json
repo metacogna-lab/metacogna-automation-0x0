@@ -1,0 +1,149 @@
+{
+  "name": "SWF.ERROR.CLASSIFY",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "8ff8510a-4c81-4f8a-98ef-102d3cf255fb"
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = items[0].json.error; return {json: {error_type: 'FATAL', severity: 'HIGH', retryable: false}};"
+      },
+      "name": "Classify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "d2fb0d51-ceb4-4219-9509-1c644e376c52"
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "value1": "={{ $json.retryable }}",
+              "operation": "equal",
+              "value2": true
+            },
+            {
+              "value1": "={{ $json.severity }}",
+              "operation": "equal",
+              "value2": "HIGH"
+            }
+          ]
+        }
+      },
+      "name": "Switch Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "8f330f63-aad6-4e7d-8c3c-62a3c777ccab"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.ERROR.RETRY"
+      },
+      "name": "Retry Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        700,
+        100
+      ],
+      "id": "752fa1a2-0028-4266-a7b7-b5c1b03d69cc"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.ERROR.ALERT"
+      },
+      "name": "Alert Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "2ba721a9-d657-4a84-b31a-750f3e1b45f7"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.ERROR.DEADLETTER"
+      },
+      "name": "Deadletter Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        700,
+        500
+      ],
+      "id": "f3fd2f9e-2958-4db6-97bb-45af77331ec9"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Classify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify": {
+      "main": [
+        [
+          {
+            "node": "Switch Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Action": {
+      "main": [
+        [
+          {
+            "node": "Retry Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Deadletter Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

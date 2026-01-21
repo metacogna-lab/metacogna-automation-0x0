@@ -1,0 +1,73 @@
+{
+    "name": "SWF.LINEAR.ISSUES.CREATE",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "return $json.issues.map(issue => ({\n  json: {\n    title: issue.title,\n    description: issue.description,\n    projectId: $json.project_id,\n    teamId: $env.LINEAR_TEAM_ID\n  }\n}));"
+            },
+            "name": "Split Issues",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.linear.app/graphql",
+                "authentication": "headerAuth",
+                "headerAuth": {
+                    "name": "Authorization",
+                    "value": "={{$env.LINEAR_API_KEY}}"
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ { \"query\": `mutation { issueCreate(input: { title: \"${$json.title}\", description: \"${$json.description}\", projectId: \"${$json.projectId}\", teamId: \"${$json.teamId}\" }) { issue { id url } } }` } }}"
+            },
+            "name": "Create Issue",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                650,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Split Issues",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Split Issues": {
+            "main": [
+                [
+                    {
+                        "node": "Create Issue",
+                        "type": "main"
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

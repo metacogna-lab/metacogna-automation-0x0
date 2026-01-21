@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+name: n8n-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate workflow JSON
+        run: |
+          for f in n8n/workflows/*.json; do
+            # Check if file exists to avoid jq error on empty dir
+            [ -e "$f" ] || continue
+            jq empty "$f"
+          done
+
+      - name: Enforce workflow naming
+        run: |
+          grep -R '"name"' n8n/workflows \
+            | grep -Ev '"(MAIN|SWF)\.' && exit 1 || true
+
+      - name: Enforce SWF separation
+        run: |
+          # Block business logic in MAIN
+          grep -R '"type": "n8n-nodes-base.function"' n8n/workflows/MAIN.* && exit 1 || true
+          
+          # Enforce SWF prefix (redundant but explicit as per request)
+          ls n8n/workflows | grep -Ev '^(MAIN|SWF)\.' && exit 1 || true
+
+      - name: Prevent secrets in workflows
+        run: |
+          grep -R "sk-" n8n/workflows && exit 1 || true

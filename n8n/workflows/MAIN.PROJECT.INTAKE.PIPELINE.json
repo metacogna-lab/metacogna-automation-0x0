@@ -1,0 +1,267 @@
+{
+    "name": "MAIN.PROJECT.INTAKE.PIPELINE",
+    "nodes": [
+        {
+            "name": "Notion Trigger",
+            "type": "n8n-nodes-base.notionTrigger",
+            "position": [
+                200,
+                300
+            ]
+        },
+        {
+            "name": "Context Bootstrap",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.CONTEXT.BOOTSTRAP"
+            },
+            "position": [
+                400,
+                300
+            ]
+        },
+        {
+            "name": "Normalize Document",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.DOC.NORMALIZE"
+            },
+            "position": [
+                600,
+                300
+            ]
+        },
+        {
+            "name": "Configure Workflow",
+            "type": "n8n-nodes-base.set",
+            "position": [
+                800,
+                300
+            ],
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "github_owner",
+                            "value": "metacogna-lab"
+                        },
+                        {
+                            "name": "project_name",
+                            "value": "={{$json.project_name}}"
+                        },
+                        {
+                            "name": "document_type",
+                            "value": "={{$json.document_type}}"
+                        },
+                        {
+                            "name": "notion_page_id",
+                            "value": "={{$json.page_id}}"
+                        }
+                    ],
+                    "number": [
+                        {
+                            "name": "version",
+                            "value": "={{$json.version}}"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Cost Guard",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.UTIL.COST_GUARD"
+            },
+            "position": [
+                1000,
+                300
+            ]
+        },
+        {
+            "name": "Template Expansion (GPT-5)",
+            "type": "n8n-nodes-base.openAi",
+            "position": [
+                1200,
+                300
+            ],
+            "parameters": {
+                "model": "gpt-5",
+                "temperature": 0.2,
+                "maxTokens": 8000,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "={{$env.PROJECT_AGENT_PROMPT}}"
+                    },
+                    {
+                        "role": "user",
+                        "content": "={{$json.normalized_document}}"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Technical Agent",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.AGENT.TECHNICAL"
+            },
+            "position": [
+                1400,
+                200
+            ]
+        },
+        {
+            "name": "Business Agent",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.AGENT.BUSINESS"
+            },
+            "position": [
+                1400,
+                400
+            ]
+        },
+        {
+            "name": "Summarize Report",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.REPORT.SUMMARY"
+            },
+            "position": [
+                1600,
+                300
+            ]
+        },
+        {
+            "name": "Slack Notification",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.COMMS.SLACK.SEND"
+            },
+            "position": [
+                1800,
+                200
+            ]
+        },
+        {
+            "name": "Register Project in Notion",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.NOTION.PROJECT.REGISTER"
+            },
+            "position": [
+                1800,
+                400
+            ]
+        }
+    ],
+    "connections": {
+        "Notion Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Context Bootstrap",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Context Bootstrap": {
+            "main": [
+                [
+                    {
+                        "node": "Normalize Document",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Normalize Document": {
+            "main": [
+                [
+                    {
+                        "node": "Configure Workflow",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Configure Workflow": {
+            "main": [
+                [
+                    {
+                        "node": "Cost Guard",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Cost Guard": {
+            "main": [
+                [
+                    {
+                        "node": "Template Expansion (GPT-5)",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Template Expansion (GPT-5)": {
+            "main": [
+                [
+                    {
+                        "node": "Technical Agent",
+                        "type": "main"
+                    }
+                ],
+                [
+                    {
+                        "node": "Business Agent",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Technical Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Summarize Report",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Business Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Summarize Report",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Summarize Report": {
+            "main": [
+                [
+                    {
+                        "node": "Slack Notification",
+                        "type": "main"
+                    }
+                ],
+                [
+                    {
+                        "node": "Register Project in Notion",
+                        "type": "main"
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

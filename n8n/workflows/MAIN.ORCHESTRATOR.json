@@ -1,0 +1,203 @@
+{
+  "name": "MAIN.ORCHESTRATOR",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "0131d5bb-9290-4aee-b8e9-0312ab04f336"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.CONTEXT.BOOTSTRAP",
+        "mode": "each"
+      },
+      "name": "Bootstrap Context",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "1e5e4010-b834-48cd-a565-3ef17083a110"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.MEMORY.READ"
+      },
+      "name": "Read Memory",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "3dc05905-3cb3-4bff-a6c2-19c326c01127"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.TASK.ROUTER"
+      },
+      "name": "Route Task",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "08bc4c72-8f87-43bc-8cf4-bdbb90dce001"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.MEMORY.WRITE"
+      },
+      "name": "Write Memory",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ],
+      "id": "98ddb5f1-d545-4e84-a438-3d7e7a09d462"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.OBSERVABILITY.LOG"
+      },
+      "name": "Log",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        300
+      ],
+      "id": "2270d93a-ee2d-458f-832c-0d3521b32931"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.OBSERVABILITY.METRICS"
+      },
+      "name": "Metrics",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        300
+      ],
+      "id": "be84c26d-498f-41ce-b754-76c665e8e623"
+    },
+    {
+      "parameters": {},
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        300,
+        500
+      ],
+      "id": "0e0a8edc-da61-40cc-b065-b8fa5d181399"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.ERROR.CLASSIFY"
+      },
+      "name": "Classify Error",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        500,
+        500
+      ],
+      "id": "f1077701-5b4e-4154-8c40-b0adf6d79371"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Bootstrap Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bootstrap Context": {
+      "main": [
+        [
+          {
+            "node": "Read Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Memory": {
+      "main": [
+        [
+          {
+            "node": "Route Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Task": {
+      "main": [
+        [
+          {
+            "node": "Write Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Memory": {
+      "main": [
+        [
+          {
+            "node": "Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log": {
+      "main": [
+        [
+          {
+            "node": "Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Classify Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

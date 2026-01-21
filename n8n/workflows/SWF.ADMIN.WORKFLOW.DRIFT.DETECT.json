@@ -1,0 +1,131 @@
+{
+    "name": "SWF.ADMIN.WORKFLOW.DRIFT.DETECT",
+    "nodes": [
+        {
+            "id": "start",
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "position": [
+                100,
+                300
+            ],
+            "parameters": {}
+        },
+        {
+            "id": "fetch",
+            "name": "Fetch Live Workflows",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                400,
+                300
+            ],
+            "parameters": {
+                "method": "GET",
+                "url": "={{$env.N8N_EDITOR_BASE_URL}}/api/v1/workflows",
+                "authentication": "headerAuth",
+                "headerAuth": {
+                    "name": "Authorization",
+                    "value": "Bearer {{$env.N8N_API_KEY}}"
+                }
+            }
+        },
+        {
+            "id": "compare",
+            "name": "Compare With Repo",
+            "type": "n8n-nodes-base.function",
+            "position": [
+                700,
+                300
+            ],
+            "parameters": {
+                "jsCode": "const live = $json.data || [];\nconst repo = $env.REPO_WORKFLOW_HASHES ? JSON.parse($env.REPO_WORKFLOW_HASHES) : {};\n\nconst drift = live\n  .filter(w => repo[w.name] && repo[w.name] !== w.updatedAt)\n  .map(w => w.name);\n\nreturn [{\n  trace_id: 'drift-' + Math.random().toString(36).substring(7),\n  drift_detected: drift.length > 0,\n  workflows: drift,\n  severity: drift.length > 0 ? 'WARNING' : 'INFO',\n  context: {\n    workflow: 'SWF.ADMIN.WORKFLOW.DRIFT.DETECT',\n    node: 'Compare With Repo',\n    environment: $env.NODE_ENV || 'unknown'\n  }\n}];"
+            }
+        },
+        {
+            "id": "if",
+            "name": "If Drift",
+            "type": "n8n-nodes-base.if",
+            "position": [
+                1000,
+                300
+            ],
+            "parameters": {
+                "conditions": {
+                    "boolean": [
+                        {
+                            "value1": "={{$json.drift_detected}}",
+                            "operation": "isTrue"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": "alert",
+            "name": "Slack Drift Alert",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "position": [
+                1300,
+                300
+            ],
+            "parameters": {
+                "workflowId": "SWF.COMMS.SLACK.SEND",
+                "mode": "each",
+                "workflowInputs": {
+                    "mappingMode": "defineBelow",
+                    "parameterizedInputs": {
+                        "severity": "={{$json.severity}}",
+                        "title": "Workflow drift detected",
+                        "message": "Modified workflows: {{$json.workflows.join(', ')}}",
+                        "trace_id": "={{$json.trace_id}}",
+                        "context": "={{$json.context}}",
+                        "channel": "#ops-alerts"
+                    }
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch Live Workflows",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Fetch Live Workflows": {
+            "main": [
+                [
+                    {
+                        "node": "Compare With Repo",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Compare With Repo": {
+            "main": [
+                [
+                    {
+                        "node": "If Drift",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "If Drift": {
+            "main": [
+                [
+                    {
+                        "node": "Slack Drift Alert",
+                        "type": "main"
+                    }
+                ],
+                []
+            ]
+        }
+    }
+}

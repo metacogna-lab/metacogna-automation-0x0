@@ -1,0 +1,135 @@
+{
+  "name": "SWF.CONTEXT.BOOTSTRAP",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "99a83e05-409a-496a-80a4-caa15a4fac36"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "trace_id",
+              "value": "={{ $uuid() }}"
+            },
+            {
+              "name": "env",
+              "value": "prod"
+            },
+            {
+              "name": "started_at",
+              "value": "={{ $now }}"
+            },
+            {
+              "name": "request_id",
+              "value": "={{ $json.request_id || $uuid() }}"
+            }
+          ]
+        }
+      },
+      "name": "Generate Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "a1069b42-19d7-49a1-9b59-1b5d9802be59"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "meta.workflow",
+              "value": "MAIN.ORCHESTRATOR"
+            },
+            {
+              "name": "meta.version",
+              "value": "v1.0.0"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": true
+        }
+      },
+      "name": "Add Meta",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "a37b0e96-debc-49c6-890c-87e303b62bf2"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "payload",
+              "value": "={{ $json.payload || {} }}"
+            }
+          ]
+        }
+      },
+      "name": "Pass Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "e3b33390-96f7-4d94-8de5-7d14afd45035"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Generate Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Context": {
+      "main": [
+        [
+          {
+            "node": "Add Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Meta": {
+      "main": [
+        [
+          {
+            "node": "Pass Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

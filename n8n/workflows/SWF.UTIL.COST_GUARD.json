@@ -1,0 +1,42 @@
+{
+    "name": "SWF.UTIL.COST_GUARD",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                100,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const maxTokens = 8000;\nconst estimate = $json.estimated_tokens || 0;\n\nif (estimate > maxTokens) {\n  throw new Error(\"COST_GUARD_EXCEEDED\");\n}\n\nreturn $json;"
+            },
+            "name": "Cost Guard Logic",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                300,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Cost Guard Logic",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {},
+    "pinData": {}
+}

@@ -1,0 +1,17 @@
+name: deploy-dev
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy dev stack
+        run: |
+          # This assumes the runner has docker access or this is a simulation
+          docker compose -f docker/dev/docker-compose.yml pull
+          docker compose -f docker/dev/docker-compose.yml up -d

@@ -1,0 +1,7 @@
+[
+    {
+        "input": "How do I reset my password?",
+        "expected_output": "To reset your password, visit the settings page...",
+        "trace_id": "golden-123"
+    }
+]

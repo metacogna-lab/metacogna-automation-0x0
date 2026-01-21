@@ -1,0 +1,48 @@
+{
+  "name": "SWF.OBSERVABILITY.LOG",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "c073762d-38bd-40e8-b1c2-470ad04ab7ca"
+    },
+    {
+      "parameters": {
+        "url": "https://api.langfuse.com/ingestion",
+        "method": "POST"
+      },
+      "name": "Log to Langfuse",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "23d1947d-e16b-48be-8bf1-aec22a9e77fc"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Log to Langfuse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

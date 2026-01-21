@@ -1,0 +1,57 @@
+{
+    "name": "SWF.REPORT.SUMMARY",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "model": "gpt-5-mini",
+                "prompt": "={{$json.report_context}}",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a reporting engine. Generate a concise project execution report in Slack-safe Markdown. No hallucinations. Focus on status, artifacts created, and next steps."
+                    },
+                    {
+                        "role": "user",
+                        "content": "Summarize the execution for project: {{$json.project_name}}"
+                    }
+                ],
+                "options": {
+                    "maxTokens": 500
+                }
+            },
+            "name": "Generate Summary",
+            "type": "n8n-nodes-base.openAi",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Generate Summary",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

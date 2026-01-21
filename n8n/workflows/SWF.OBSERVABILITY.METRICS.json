@@ -1,0 +1,48 @@
+{
+  "name": "SWF.OBSERVABILITY.METRICS",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "259f5902-56b3-4dda-97b1-72387c225bdb"
+    },
+    {
+      "parameters": {
+        "url": "https://metrics-collector/v1/metrics",
+        "method": "POST"
+      },
+      "name": "Post Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "77f4502a-5dc8-49f5-b1e5-126da34c9c58"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Post Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

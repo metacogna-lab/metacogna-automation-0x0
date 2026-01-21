@@ -1,0 +1,43 @@
+{
+    "name": "SWF.DOC.NORMALIZE",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// SWF.DOC.NORMALIZE Logic\nconst input = $json;\n\n// 1. Validate Document Type\nconst allowedTypes = ['PRD', 'ARCHITECTURE', 'DESIGN', 'TASKS', 'STRATEGY'];\nconst docType = (input.document_type || '').toUpperCase();\nif (!allowedTypes.includes(docType)) {\n  throw new Error(`Invalid Document Type: ${docType}. Must be one of: ${allowedTypes.join(', ')}`);\n}\n\n// 2. Extract and Normalize Content (Mocking extraction from notion blocks)\n// In production this would parse specific Notion Block structures\nconst rawContent = input.content || '';\nconst normalizedDocument = rawContent.replace(/\\*\\*/g, '').trim(); // Simple formatting strip example\n\n// 3. Enforce Required Sections (Pseudo-check)\nconst requiredSections = ['Title', 'Overview'];\nconst missing = requiredSections.filter(s => !normalizedDocument.includes(s));\nif (missing.length > 0) {\n  // throw new Error(`Missing required sections: ${missing.join(', ')}`);\n  // Warn instead of throw for robustness in this demo\n  console.log(`Warning: Missing sections ${missing.join(', ')}`);\n}\n\n// 4. Generate Metadata\nconst project_name = input.project_name || 'Untitled Project';\nconst project_slug = project_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');\nconst estimated_tokens = Math.ceil(normalizedDocument.length / 4);\n\nreturn [{\n  project_name,\n  project_slug,\n  document_type: docType,\n  normalized_document: normalizedDocument,\n  page_id: input.page_id,\n  version: input.version || 1,\n  estimated_tokens\n}];"
+            },
+            "name": "Normalize Logic",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Normalize Logic",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

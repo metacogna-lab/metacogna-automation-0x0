@@ -1,0 +1,26 @@
+name: langfuse-evals
+
+on:
+  pull_request:
+    paths:
+      - n8n/workflows/**
+      - n8n/prompts/**
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install langfuse
+
+      - name: Run Langfuse eval replay
+        run: |
+          # This assumes replay.py exists and handles the logic
+          python evals/replay.py --dataset evals/golden.json --threshold 0.9

@@ -1,0 +1,102 @@
+{
+  "name": "SWF.MEMORY.WRITE",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "2ff2f24b-250a-4248-a39b-db3ffdfc43a1"
+    },
+    {
+      "parameters": {
+        "operation": "set"
+      },
+      "name": "Write Redis",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "e162859c-2c53-4917-89d1-d541a96e7957"
+    },
+    {
+      "parameters": {
+        "operation": "upsert"
+      },
+      "name": "Write Vector",
+      "type": "n8n-nodes-base.pinecone",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "2e054f63-7cce-448f-9c00-1be77adf67c3"
+    },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [
+            {
+              "name": "memory_written",
+              "value": true
+            }
+          ]
+        }
+      },
+      "name": "Confirmation",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "de06f666-0317-4045-ad45-1f5d3a0a7e09"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Write Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Redis": {
+      "main": [
+        [
+          {
+            "node": "Write Vector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Vector": {
+      "main": [
+        [
+          {
+            "node": "Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

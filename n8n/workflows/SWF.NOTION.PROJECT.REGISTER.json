@@ -1,0 +1,108 @@
+{
+    "name": "SWF.NOTION.PROJECT.REGISTER",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "resource": "databasePage",
+                "operation": "update",
+                "pageId": "={{$json.page_id}}",
+                "propertiesUi": {
+                    "propertyValues": [
+                        {
+                            "key": "Status",
+                            "selectValue": "Processed"
+                        },
+                        {
+                            "key": "Repo URL",
+                            "urlValue": "={{$json.repo_url}}"
+                        },
+                        {
+                            "key": "Linear Project",
+                            "textValue": "={{$json.linear_project_name}}"
+                        }
+                    ]
+                }
+            },
+            "name": "Update Origin Page",
+            "type": "n8n-nodes-base.notion",
+            "typeVersion": 2,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "name": "Prepare Registry Payload",
+            "type": "n8n-nodes-base.function",
+            "position": [
+                650,
+                300
+            ],
+            "parameters": {
+                "jsCode": "const input = $input.all()[0].json;\n\nreturn [{\n  properties: {\n    'Project Name': { title: [{ text: { content: input.project_name || 'Unknown' } }] },\n    'Project Slug': { rich_text: [{ text: { content: input.project_slug || '' } }] },\n    'Notion Page ID': { rich_text: [{ text: { content: input.page_id || '' } }] },\n    'Trace ID': { rich_text: [{ text: { content: input.trace_id || '' } }] },\n    'Environment': { select: { name: input.environment || 'prod' } },\n    'Processing Status': { select: { name: 'Processed' } },\n    'Version': { number: input.version || 1 },\n    'Document Type': { select: { name: input.document_type || 'Unknown' } },\n    'GitHub Owner': { rich_text: [{ text: { content: input.github_owner || '' } }] },\n    'GitHub Repo Name': { rich_text: [{ text: { content: input.github_repo_name || '' } }] },\n    'GitHub Repo': { url: input.repo_url || null },\n    'Linear Project Name': { rich_text: [{ text: { content: input.linear_project_name || '' } }] },\n    'GCS Bucket': { rich_text: [{ text: { content: input.gcs_bucket || 'Projects' } }] },\n    'Processed At': { date: { start: new Date().toISOString() } }\n  }\n}];"
+            }
+        },
+        {
+            "name": "Create Registry Entry",
+            "type": "n8n-nodes-base.notion",
+            "position": [
+                850,
+                300
+            ],
+            "parameters": {
+                "resource": "page",
+                "operation": "create",
+                "databaseId": "={{$env.NOTION_PROJECTS_DB_ID}}",
+                "properties": "={{$json.properties}}"
+            }
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Update Origin Page",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update Origin Page": {
+            "main": [
+                [
+                    {
+                        "node": "Prepare Registry Payload",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prepare Registry Payload": {
+            "main": [
+                [
+                    {
+                        "node": "Create Registry Entry",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

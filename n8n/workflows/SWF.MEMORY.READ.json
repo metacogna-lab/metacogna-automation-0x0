@@ -1,0 +1,104 @@
+{
+  "name": "SWF.MEMORY.READ",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "67cbe2d0-8321-449a-9874-6124ffc4382c"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "context:{{ $json.request_id }}"
+      },
+      "name": "Redis Query",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "7c8f87d1-d296-480a-b816-16604763b6f0"
+    },
+    {
+      "parameters": {
+        "operation": "query"
+      },
+      "name": "Vector Store Query",
+      "type": "n8n-nodes-base.pinecone",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "cfec2d02-755a-4c92-956f-ca53885e3cac"
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "memory",
+              "value": "={{ $json }}"
+            }
+          ]
+        }
+      },
+      "name": "Merge Memory",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "0ae93f72-78b4-4938-b0fb-9dbc5d13d561"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Redis Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Query": {
+      "main": [
+        [
+          {
+            "node": "Vector Store Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Query": {
+      "main": [
+        [
+          {
+            "node": "Merge Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

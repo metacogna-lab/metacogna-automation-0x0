@@ -1,0 +1,104 @@
+{
+    "name": "SWF.AGENT.TECHNICAL",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                200,
+                300
+            ]
+        },
+        {
+            "name": "Ensure Repo",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.GITHUB.REPO.ENSURE"
+            },
+            "position": [
+                400,
+                300
+            ]
+        },
+        {
+            "name": "Commit Technical Docs",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.GITHUB.COMMIT"
+            },
+            "position": [
+                600,
+                300
+            ]
+        },
+        {
+            "name": "Ensure Linear Project",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.LINEAR.PROJECT.ENSURE"
+            },
+            "position": [
+                800,
+                300
+            ]
+        },
+        {
+            "name": "Create Linear Issues",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.LINEAR.ISSUES.CREATE"
+            },
+            "position": [
+                1000,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Ensure Repo",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Ensure Repo": {
+            "main": [
+                [
+                    {
+                        "node": "Commit Technical Docs",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Commit Technical Docs": {
+            "main": [
+                [
+                    {
+                        "node": "Ensure Linear Project",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Ensure Linear Project": {
+            "main": [
+                [
+                    {
+                        "node": "Create Linear Issues",
+                        "type": "main"
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

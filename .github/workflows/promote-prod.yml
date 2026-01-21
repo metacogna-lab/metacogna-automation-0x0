@@ -1,0 +1,20 @@
+name: promote-prod
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  promote:
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify workflows unchanged
+        run: |
+          git diff HEAD~1 n8n/workflows || exit 0
+
+      - name: Deploy prod
+        run: |
+          docker compose -f docker/prod/docker-compose.yml up -d

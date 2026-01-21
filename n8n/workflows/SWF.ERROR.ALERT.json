@@ -1,0 +1,67 @@
+{
+  "name": "SWF.ERROR.ALERT",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "65bab39f-68bf-4030-8c15-e3ae6fb41c28"
+    },
+    {
+      "parameters": {
+        "message": "Error detected!",
+        "channel": "#alerts"
+      },
+      "name": "Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "eb39ee9b-1563-4bd8-ac04-04ef75e53e00"
+    },
+    {
+      "parameters": {
+        "subject": "Critical Error",
+        "text": "Details..."
+      },
+      "name": "Email Alert",
+      "type": "n8n-nodes-base.email",
+      "typeVersion": 1,
+      "position": [
+        300,
+        500
+      ],
+      "id": "ed678245-28f9-4dfa-a1db-a94e4fd4c75d"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Slack Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

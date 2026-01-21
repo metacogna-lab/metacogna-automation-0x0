@@ -11,10 +11,14 @@ x-n8n: &service-n8n
   image: n8nio/n8n:latest
   networks: ['demo']
   environment:
+    - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+    - SLACK_CLIENT_ID=${SLACK_CLIENT_ID}
+    - SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET}
     - DB_TYPE=postgresdb
     - DB_POSTGRESDB_HOST=postgres
     - DB_POSTGRESDB_USER=${POSTGRES_USER}
     - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+    - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
     - N8N_DIAGNOSTICS_ENABLED=false
     - N8N_PERSONALIZATION_ENABLED=false
     - N8N_ENCRYPTION_KEY
@@ -81,6 +85,7 @@ services:
       fi
     volumes:
       - ./n8n/demo-data:/demo-data
+      - ./n8n/workflows:/home/node/.n8n/workflows
     depends_on:
       postgres:
         condition: service_healthy

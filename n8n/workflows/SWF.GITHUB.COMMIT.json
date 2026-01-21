@@ -1,0 +1,104 @@
+{
+    "name": "SWF.GITHUB.COMMIT",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "GET",
+                "url": "={{'https://api.github.com/repos/' + $json.owner + '/' + $json.repo + '/contents/' + $json.path}}",
+                "authentication": "headerAuth",
+                "headerAuth": {
+                    "name": "Authorization",
+                    "value": "={{'Bearer ' + $env.GITHUB_TOKEN}}"
+                },
+                "options": {
+                    "ignoreHttpStatusCode": true
+                }
+            },
+            "name": "Get SHA",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const existing = $json.sha ? $json.sha : null;\nreturn [{\n  sha: existing,\n  owner: $node[\"Start\"].json.owner,\n  repo: $node[\"Start\"].json.repo,\n  path: $node[\"Start\"].json.path,\n  content: Buffer.from($node[\"Start\"].json.content).toString('base64'),\n  message: $node[\"Start\"].json.message || 'Update via Cognagent'\n}];"
+            },
+            "name": "Prepare Payload",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "PUT",
+                "url": "={{'https://api.github.com/repos/' + $json.owner + '/' + $json.repo + '/contents/' + $json.path}}",
+                "authentication": "headerAuth",
+                "headerAuth": {
+                    "name": "Authorization",
+                    "value": "={{'Bearer ' + $env.GITHUB_TOKEN}}"
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ { \"message\": $json.message, \"content\": $json.content, \"sha\": $json.sha } }}"
+            },
+            "name": "Commit File",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                850,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Get SHA",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Get SHA": {
+            "main": [
+                [
+                    {
+                        "node": "Prepare Payload",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Prepare Payload": {
+            "main": [
+                [
+                    {
+                        "node": "Commit File",
+                        "type": "main"
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

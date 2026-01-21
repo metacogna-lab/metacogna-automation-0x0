@@ -1,0 +1,73 @@
+{
+  "name": "SWF.ERROR.RETRY",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "889e6295-e50b-4047-b2d7-77600e51752a"
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "daa15b42-de57-473a-be20-f494dea8d833"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.failed_node_webhook }}",
+        "method": "POST"
+      },
+      "name": "Re-invoke",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "dc5c52c0-6aec-426b-9bad-1837e96c9337"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Re-invoke",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

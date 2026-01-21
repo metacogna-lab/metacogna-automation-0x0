@@ -1,0 +1,70 @@
+{
+    "name": "SWF.COMMS.SLACK.SEND",
+    "nodes": [
+        {
+            "id": "start",
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "position": [
+                100,
+                300
+            ],
+            "parameters": {}
+        },
+        {
+            "id": "format",
+            "name": "Format Slack Message",
+            "type": "n8n-nodes-base.function",
+            "position": [
+                400,
+                300
+            ],
+            "parameters": {
+                "jsCode": "const severityColor = {\n  INFO: '#439FE0',\n  WARNING: '#ECB22E',\n  ERROR: '#E01E5A',\n  CRITICAL: '#8B0000'\n};\n\nconst color = severityColor[$json.severity] || '#439FE0';\n\nreturn [{\n  webhook_url: $env.SLACK_WEBHOOK_URL,\n  payload: {\n    channel: $json.channel || '#ops-alerts',\n    attachments: [\n      {\n        color,\n        blocks: [\n          {\n            type: 'header',\n            text: { type: 'plain_text', text: `${$json.severity}: ${$json.title}` }\n          },\n          {\n            type: 'section',\n            fields: [\n              { type: 'mrkdwn', text: `*Workflow:*\\n${$json.context?.workflow || 'unknown'}` },\n              { type: 'mrkdwn', text: `*Node:*\\n${$json.context?.node || 'unknown'}` },\n              { type: 'mrkdwn', text: `*Env:*\\n${$json.context?.environment || 'unknown'}` },\n              { type: 'mrkdwn', text: `*Trace ID:*\\n\\`${$json.trace_id || 'n/a'}\\`` }\n            ]\n          },\n          {\n            type: 'section',\n            text: { type: 'mrkdwn', text: $json.message || '' }\n          }\n        ]\n      }\n    ]\n  }\n}];"
+            }
+        },
+        {
+            "id": "send",
+            "name": "Send Slack Webhook",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                700,
+                300
+            ],
+            "parameters": {
+                "method": "POST",
+                "url": "={{$json.webhook_url}}",
+                "sendBody": true,
+                "contentType": "json",
+                "specifyBody": "json",
+                "jsonBody": "={{$json.payload}}",
+                "options": {
+                    "timeout": 3000
+                }
+            },
+            "onError": "continueErrorOutput"
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Format Slack Message",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Format Slack Message": {
+            "main": [
+                [
+                    {
+                        "node": "Send Slack Webhook",
+                        "type": "main"
+                    }
+                ]
+            ]
+        }
+    }
+}

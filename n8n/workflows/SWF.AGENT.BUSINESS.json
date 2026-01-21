@@ -1,0 +1,105 @@
+{
+    "name": "SWF.AGENT.BUSINESS",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "typeVersion": 1,
+            "position": [
+                200,
+                300
+            ]
+        },
+        {
+            "name": "Generate Business Docs",
+            "type": "n8n-nodes-base.openAi",
+            "parameters": {
+                "model": "gpt-4o",
+                "temperature": 0.2
+            },
+            "position": [
+                400,
+                300
+            ]
+        },
+        {
+            "name": "Commit Business Docs",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.GITHUB.COMMIT"
+            },
+            "position": [
+                600,
+                300
+            ]
+        },
+        {
+            "name": "Upload to GCS",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.UTIL.GCS.UPLOAD"
+            },
+            "position": [
+                800,
+                300
+            ]
+        },
+        {
+            "name": "Register in Notion",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "parameters": {
+                "workflowId": "SWF.NOTION.ARTIFACT.REGISTER"
+            },
+            "position": [
+                1000,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Generate Business Docs",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Generate Business Docs": {
+            "main": [
+                [
+                    {
+                        "node": "Commit Business Docs",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Commit Business Docs": {
+            "main": [
+                [
+                    {
+                        "node": "Upload to GCS",
+                        "type": "main"
+                    }
+                ]
+            ]
+        },
+        "Upload to GCS": {
+            "main": [
+                [
+                    {
+                        "node": "Register in Notion",
+                        "type": "main"
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "errorWorkflow": "SWF.ERROR.CLASSIFY"
+    }
+}

@@ -1,0 +1,164 @@
+{
+  "name": "SWF.TASK.ROUTER",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "cd4f58fb-0a7e-48d7-9827-8c51334ed2f2"
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "value1": "={{ $json.task_type }}",
+              "operation": "equal",
+              "value2": "analysis"
+            },
+            {
+              "value1": "={{ $json.task_type }}",
+              "operation": "equal",
+              "value2": "extraction"
+            },
+            {
+              "value1": "={{ $json.task_type }}",
+              "operation": "equal",
+              "value2": "action"
+            }
+          ]
+        }
+      },
+      "name": "Route Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "92f0952e-4f45-4daf-919a-0f6b938c5aae"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.DOMAIN.ANALYSIS"
+      },
+      "name": "Analysis Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        600,
+        100
+      ],
+      "id": "edad8348-b479-43e1-b05a-82be0bea95e9"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.DOMAIN.EXTRACTION"
+      },
+      "name": "Extraction Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ],
+      "id": "3b617501-10c3-4c5d-b3c7-6d319dc9dd96"
+    },
+    {
+      "parameters": {
+        "workflowId": "SWF.DOMAIN.ACTION"
+      },
+      "name": "Action Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        600,
+        500
+      ],
+      "id": "3865c87f-86cc-4475-84cb-1de51818a0d3"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "error.message",
+              "value": "No route matched for task_type"
+            },
+            {
+              "name": "error.type",
+              "value": "ROUTING_FAILURE"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": true
+        }
+      },
+      "name": "Throw Routing Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        600,
+        700
+      ],
+      "id": "612ca8c9-8dcb-40e9-b99b-b618ce060bf4"
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Route Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Switch": {
+      "main": [
+        [
+          {
+            "node": "Analysis Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extraction Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Action Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Throw Routing Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}
